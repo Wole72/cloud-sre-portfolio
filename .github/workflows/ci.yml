@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install app deps
+        working-directory: app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Terraform fmt/validate
+        working-directory: infra/terraform
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false
+          terraform validate
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: sre-portfolio
+
+      - name: Build Docker image
+        run: |
+          docker build -t sre-demo:local ./app
+
+      - name: Load image into kind
+        run: |
+          kind load docker-image sre-demo:local --name sre-portfolio
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/pdb.yaml
+          kubectl -n sre-portfolio rollout status deploy/sre-demo --timeout=120s
+          kubectl -n sre-portfolio get pods -o wide
+
+      - name: Port-forward and smoke test
+        run: |
+          kubectl -n sre-portfolio port-forward svc/sre-demo 8080:80 >/tmp/pf.log 2>&1 &
+          PF_PID=$!
+          sleep 3
+          chmod +x scripts/*.sh
+          ./scripts/smoke_test.sh http://localhost:8080
+          kill $PF_PID
+

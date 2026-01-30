@@ -1,0 +1,33 @@
+
+---
+
+## 3) Add a `.gitignore` (important)
+From repo root:
+```bash
+cat > .gitignore <<'EOF'
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+
+# macOS
+.DS_Store
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+EOF
+
