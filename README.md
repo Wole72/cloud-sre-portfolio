@@ -1,4 +1,4 @@
-# Cloud SRE Portfolio — FastAPI + Kubernetes + Prometheus + Grafana
+# Cloud SRE Portfolio FastAPI + Kubernetes + Prometheus + Grafana
 
 Production-style **Site Reliability Engineering (SRE)** demo showcasing:
 
@@ -28,7 +28,7 @@ This project demonstrates **core SRE principles**:
 2. Prometheus scrapes metrics using a Kubernetes **ServiceMonitor**
 3. Metrics are stored in Prometheus time-series database
 4. Grafana queries Prometheus
-5. Real Metric Data dashboards visualize service health
+5. Golden Metric Data dashboards visualize service health
 6. (Optional) Alertmanager triggers alerts from SLO rules
 
 ---
@@ -45,9 +45,9 @@ This project uses the **kube-prometheus-stack** Helm chart, which includes:
 
 ---
 
-# SRE Golden Signals Dashboard
+# SRE Golden Metric Dashboard
 
-The Grafana dashboard visualizes the **four Golden Signals** used in SRE:
+The Grafana dashboard visualizes the **four Golden Metrics** used in SRE:
 
 - Traffic
 - Errors
@@ -56,7 +56,7 @@ The Grafana dashboard visualizes the **four Golden Signals** used in SRE:
 
 ## Dashboard: SRE Demo – FastAPI
 
-![Golden Signals Dashboard](docs/screenshots/dashboard-golden-signals.png)
+![Golden Metric Dashboard](docs/screenshots/sre-dashboard-metrics.png)
 
 ---
 
@@ -225,8 +225,42 @@ Visualized HTTP request metrics over time.
 - Helm
 - hey (load testing tool)
 
-Install hey (macOS):
+Install hey in terminal for (macOS):
 
 ```bash
 brew install hey
+```
+Step 1 - Start Kubernetes
 
+```bash
+minikube start
+```
+
+Verify: nodes are running
+```bash
+kubectl get nodes
+```
+
+Step 2 — Deploy Monitoring Stack (Prometheus + Grafana)
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+  -n monitoring --create-namespace \
+  -f observability/helm/values-monitoring.yaml
+```
+Verify pods are up
+```bash
+kubectl get pods -n monitoring
+```
+Step 3 — Deploy data to Service
+> This assumes your Kubernetes manifests live under k8s/ (Deployment/Service/ServiceMonitor/etc).
+
+```bash
+kubectl apply -f k8s/
+```
+Verify Pods:
+```bash
+kubectl get pods -n sre-portfolio
