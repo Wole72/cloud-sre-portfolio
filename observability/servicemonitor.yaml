@@ -6,12 +6,12 @@ metadata:
   labels:
     release: monitoring
 spec:
-  selector:
-    matchLabels:
-      app: sre-demo
   namespaceSelector:
     matchNames:
       - sre-portfolio
+  selector:
+    matchLabels:
+      app: sre-demo
   endpoints:
     - port: http
       path: /metrics

@@ -1,20 +1,20 @@
-# cloud-sre-portfolio (FastAPI)
+## SRE Observability Demo (FastAPI)
 
-Portfolio repo demonstrating:
-- FastAPI service with /healthz, /readyz, /metrics (Prometheus)
-- Docker containerization
-- Kubernetes deployment (kind-friendly) with probes + resources + PDB
-- kube-prometheus-stack (Prometheus + Grafana) and ServiceMonitor
-- CI pipeline with kind smoke tests
-- Terraform skeleton (fmt/validate)
-- Runbooks
+This project demonstrates a production-style SRE observability stack using:
 
-## Quickstart (kind)
-```bash
-kind create cluster --name sre-portfolio
-docker build -t sre-demo:local ./app
-kind load docker-image sre-demo:local --name sre-portfolio
-kubectl apply -f k8s/
-kubectl -n sre-portfolio rollout status deploy/sre-demo
-kubectl -n sre-portfolio port-forward svc/sre-demo 8080:80
-./scripts/smoke_test.sh http://localhost:8080
+- FastAPI service with Prometheus metrics
+- Kubernetes (kind)
+- Prometheus Operator (kube-prometheus-stack)
+- Grafana dashboards auto-provisioned via ConfigMaps
+
+### Key Signals
+- Request throughput (RPS)
+- Error rate (5xx)
+- Latency p95 / p99
+- Top API endpoints by traffic
+
+### Reliability Practices
+- Histogram-based latency tracking
+- Rate-based error monitoring
+- SLO-ready alert rules
+- Infrastructure-as-code dashboards

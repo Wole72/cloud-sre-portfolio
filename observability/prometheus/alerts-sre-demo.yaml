@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sre-demo-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+  - name: sre-demo.rules
+    rules:
+    - alert: High5xxErrorRate
+      expr: |
+        (
+          sum(rate(http_requests_total{job="sre-demo",status=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total{job="sre-demo"}[5m]))
+        ) > 0.05
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High 5xx error rate (>5%) for sre-demo"
+        description: "More than 5% of requests are failing with 5xx over 5 minutes."
+
+    - alert: HighP99Latency
+      expr: |
+        histogram_quantile(
+          0.99,
+          sum by (le) (
+            rate(http_request_duration_seconds_bucket{job="sre-demo"}[5m])
+          )
+        ) > 0.5
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High p99 latency (>500ms) for sre-demo"
+        description: "Tail latency is above 500ms for 2 minutes."
+
